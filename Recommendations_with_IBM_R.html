@@ -13108,7 +13108,7 @@ div#notebook {
         }
     });
     </script>
-    <!-- End of mathjax configuration --><link rel="stylesheet" href="/pq-QvYjByMluGMjv"/></head>
+    <!-- End of mathjax configuration --><link rel="stylesheet" href="/Ml87pMC7uo-L_1Az"/></head>
 <body>
   <div tabindex="-1" id="notebook" class="border-box-sizing">
     <div class="container" id="notebook-container">
@@ -14758,16 +14758,16 @@ The 3 most similar users to user 46 are: [4201, 23, 3782]
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>[&#39;insights from new york car accident reports&#39;,
- &#39;analyze open data sets with spark &amp; pixiedust&#39;,
+<pre>[&#39;the unit commitment problem&#39;,
  &#39;graph-based machine learning&#39;,
- &#39;analyzing data by using the sparkling.data library features&#39;,
- &#39;improving real-time object detection with yolo&#39;,
- &#39;build a python app on the streaming analytics service&#39;,
- &#39;machine learning exercises in python, part 1&#39;,
- &#39;data tidying in data science experience&#39;,
- &#39;automating web analytics through python&#39;,
- &#39;recommender systems: approaches &amp; algorithms&#39;]</pre>
+ &#39;analyze accident reports on amazon emr spark&#39;,
+ &#39;using brunel in ipython/jupyter notebooks&#39;,
+ &#39;data visualization playbook: telling the data story&#39;,
+ &#39;deep learning with data science experience&#39;,
+ &#39;declarative machine learning&#39;,
+ &#39;deep forest: towards an alternative to deep neural networks&#39;,
+ &#39;get social with your notebooks in dsx&#39;,
+ &#39;using bigdl in dsx for deep learning on spark&#39;]</pre>
 </div>
 
 </div>
@@ -14895,21 +14895,38 @@ The 3 most similar users to user 46 are: [4201, 23, 3782]
 <span class="sd">   </span>
 <span class="sd">    &#39;&#39;&#39;</span>
     
-    <span class="c1"># Get sorted users</span>
+    <span class="c1"># Get sorted users based on similarity and number of interactions</span>
     <span class="n">top_users</span> <span class="o">=</span> <span class="n">get_top_sorted_users</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
     
     <span class="c1"># Get articles seen by the user</span>
     <span class="n">user_articles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_user_articles</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">user_item</span><span class="p">)</span>
+    
+    <span class="c1"># Group articles by interaction count</span>
+    <span class="n">article_interactions</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;article_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     
     <span class="n">recs</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">neighbor_id</span> <span class="ow">in</span> <span class="n">top_users</span><span class="p">[</span><span class="s1">&#39;neighbor_id&#39;</span><span class="p">]:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">m</span><span class="p">:</span>
             <span class="k">break</span>
         <span class="n">neighbor_articles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_user_articles</span><span class="p">(</span><span class="n">neighbor_id</span><span class="p">,</span> <span class="n">user_item</span><span class="p">)</span>
-        <span class="c1"># Recommend articles the user hasn&#39;t seen, prioritized by users with more interactions</span>
-        <span class="n">recs</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">neighbor_articles</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">user_articles</span> <span class="ow">and</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">recs</span><span class="p">])</span>
-    
+        
+        <span class="c1"># Filter articles the user hasn&#39;t seen</span>
+        <span class="n">new_recs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">neighbor_articles</span><span class="p">,</span> <span class="n">user_articles</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Sort new recommendations based on article popularity/interaction count</span>
+        <span class="n">sorted_new_recs</span> <span class="o">=</span> <span class="n">article_interactions</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">new_recs</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        
+        <span class="c1"># Extend the recommendation list with sorted articles, avoiding duplicates</span>
+        <span class="k">for</span> <span class="n">article_id</span> <span class="ow">in</span> <span class="n">sorted_new_recs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">article_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">recs</span><span class="p">:</span>
+                <span class="n">recs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">article_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">recs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">m</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="c1"># Ensure only the top m recommendations are returned if exceeding the limit</span>
     <span class="n">recs</span> <span class="o">=</span> <span class="n">recs</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
+    
+    <span class="c1"># Fetch article names</span>
     <span class="n">rec_names</span> <span class="o">=</span> <span class="n">get_article_names</span><span class="p">(</span><span class="n">recs</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">recs</span><span class="p">,</span> <span class="n">rec_names</span>
@@ -14949,10 +14966,10 @@ The 3 most similar users to user 46 are: [4201, 23, 3782]
 
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>The top 10 recommendations for user 20 are the following article ids:
-[&#39;1024.0&#39;, &#39;1085.0&#39;, &#39;109.0&#39;, &#39;1150.0&#39;, &#39;1151.0&#39;, &#39;1152.0&#39;, &#39;1153.0&#39;, &#39;1154.0&#39;, &#39;1157.0&#39;, &#39;1160.0&#39;]
+[&#39;1330.0&#39;, &#39;1427.0&#39;, &#39;1364.0&#39;, &#39;1170.0&#39;, &#39;1162.0&#39;, &#39;1304.0&#39;, &#39;1351.0&#39;, &#39;1160.0&#39;, &#39;1354.0&#39;, &#39;1368.0&#39;]
 
 The top 10 recommendations for user 20 are the following article names:
-[&#39;airbnb data for analytics: washington d.c. listings&#39;, &#39;analyze accident reports on amazon emr spark&#39;, &#39;tensorflow quick tips&#39;, &#39;airbnb data for analytics: venice listings&#39;, &#39;airbnb data for analytics: venice calendar&#39;, &#39;airbnb data for analytics: venice reviews&#39;, &#39;using deep learning to reconstruct high-resolution audio&#39;, &#39;airbnb data for analytics: vienna listings&#39;, &#39;airbnb data for analytics: vienna calendar&#39;, &#39;airbnb data for analytics: chicago listings&#39;]
+[&#39;apache spark lab, part 1: basic concepts&#39;, &#39;predicting churn with the spss random tree algorithm&#39;, &#39;analyze energy consumption in buildings&#39;, &#39;use xgboost, scikit-learn &amp; ibm watson machine learning apis&#39;, &#39;putting a human face on machine learning&#39;, &#39;gosales transactions for logistic regression model&#39;, &#39;insights from new york car accident reports&#39;, &#39;model bike sharing data with spss&#39;, &#39;analyze accident reports on amazon emr spark&#39;, &#39;movie recommender system with spark machine learning&#39;]
 </pre>
 </div>
 </div>
@@ -16009,7 +16026,7 @@ How many articles are we not able to make predictions for because of the cold st
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[49]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span>
@@ -16090,6 +16107,7 @@ Latent Features: 610, Accuracy: 0.9645
 Latent Features: 630, Accuracy: 0.9645
 Latent Features: 650, Accuracy: 0.9645
 Latent Features: 670, Accuracy: 0.9645
+Latent Features: 690, Accuracy: 0.9645
 </pre>
 </div>
 </div>
@@ -16148,7 +16166,7 @@ Latent Features: 670, Accuracy: 0.9645
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[50]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span>
@@ -16156,6 +16174,26 @@ Latent Features: 670, Accuracy: 0.9645
 </pre></div>
 
     </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[50]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0</pre>
+</div>
+
+</div>
+
 </div>
 </div>
 
